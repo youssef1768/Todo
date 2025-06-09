@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>تطبيق المهام الذكي</title>
+  <link rel="manifest" href="manifest.json" />
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background: var(--bg);
+      color: var(--text);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      transition: background 0.3s, color 0.3s;
+    }
+    #app {
+      background: var(--card);
+      padding: 20px;
+      border-radius: 12px;
+      width: 90%;
+      max-width: 400px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    input, button {
+      width: 100%;
+      padding: 10px;
+      margin: 5px 0;
+      font-size: 16px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+    }
+    ul {
+      list-style: none;
+      padding: 0;
+    }
+    li {
+      background: var(--item);
+      margin: 5px 0;
+      padding: 10px;
+      border-radius: 6px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    li button {
+      background-color: #e74c3c;
+      color: white;
+      border: none;
+      padding: 4px 8px;
+      font-size: 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      margin-right: 10px;
+    }
+    .dark {
+      --bg: #121212;
+      --card: #1e1e1e;
+      --item: #2c2c2c;
+      --text: #e0e0e0;
+    }
+    .light {
+      --bg: #f0f0f0;
+      --card: #ffffff;
+      --item: #e0e0e0;
+      --text: #333333;
+    }
+    #modeContainer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin: 10px 0;
+    }
+    #modeText {
+      font-weight: bold;
+      font-size: 16px;
+    }
+    #toggleMode {
+      width: auto;
+      padding: 8px 12px;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body class="light">
+  <div id="app">
+    <h2>قائمة المهام</h2>
+    <input id="taskInput" placeholder="أدخل مهمة جديدة" />
+    <button id="addBtn">أضف المهمة ✅</button>
+    
+    <div id="modeContainer">
+      <span id="modeText">الوضع الساطع</span>
+      <button id="toggleMode">تبديل الوضع 🌙</button>
+    </div>
+    
+    <ul id="taskList"></ul>
+  </div>
+
+  <script>
+    const taskInput = document.getElementById('taskInput');
+    const addBtn = document.getElementById('addBtn');
+    const taskList = document.getElementById('taskList');
+    const toggleMode = document.getElementById('toggleMode');
+    const modeText = document.getElementById('modeText');
+    const body = document.body;
+
+    let tasks = JSON.parse(localStorage.getItem('tasks')) || [];
+    let mode = localStorage.getItem('mode') || 'light';
+    body.className = mode;
+
+    function updateModeText() {
+      modeText.textContent = body.className === 'light' ? 'الوضع الساطع' : 'الوضع الداكن';
+    }
+
+    const renderTasks = () => {
+      taskList.innerHTML = '';
+      tasks.forEach((t, i) => {
+        const li = document.createElement('li');
+        li.textContent = t;
+        const btn = document.createElement('button');
+        btn.textContent = 'حذف';
+        btn.onclick = () => {
+          tasks.splice(i, 1);
+          saveAndRender();
+        };
+        li.appendChild(btn);
+        taskList.appendChild(li);
+      });
+    };
+
+    const saveAndRender = () => {
+      localStorage.setItem('tasks', JSON.stringify(tasks));
+      localStorage.setItem('mode', body.className);
+      renderTasks();
+      updateModeText();
+    };
+
+    addBtn.onclick = () => {
+      const val = taskInput.value.trim();
+      if (!val) return;
+      tasks.push(val);
+      taskInput.value = '';
+      saveAndRender();
+    };
+
+    toggleMode.onclick = () => {
+      body.className = body.className === 'light' ? 'dark' : 'light';
+      saveAndRender();
+    };
+
+    renderTasks();
+    updateModeText();
+
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('sw.js').catch(console.error);
+    }
+  </script>
+</body>
+</html>
